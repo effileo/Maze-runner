@@ -100,31 +100,58 @@ class MazeApp(ctk.CTk):
         self.btn_solve = ctk.CTkButton(self.left_panel, text="Solve Maze", fg_color="#2ecc71", hover_color="#27ae60", command=self.on_solve_maze)
         self.btn_solve.pack(fill="x", padx=20, pady=5)
 
+        # Stack Log Report
+        self.label_log = ctk.CTkLabel(self.left_panel, text="Stack Log:", font=ctk.CTkFont(size=13, weight="bold"))
+        self.label_log.pack(anchor="w", padx=20, pady=(20, 0))
+        
+        self.stack_log = ctk.CTkTextbox(self.left_panel, height=150, font=ctk.CTkFont(family="Consolas", size=11))
+        self.stack_log.pack(fill="x", padx=20, pady=(5, 10))
+        self.stack_log.configure(state="disabled")
+
+    def log_message(self, message):
+        self.stack_log.configure(state="normal")
+        self.stack_log.insert("end", message + "\n")
+        self.stack_log.see("end")
+        self.stack_log.configure(state="disabled")
+
     def on_generate_maze(self):
         try:
             rows = int(self.entry_rows.get())
             cols = int(self.entry_cols.get())
             self.engine.reset(rows, cols)
+            self.stack_log.configure(state="normal")
+            self.stack_log.delete("1.0", "end")
+            self.stack_log.configure(state="disabled")
+            self.log_message("--- START GENERATION ---")
             self.animate_generation()
         except ValueError:
             print("Invalid input for rows/cols")
 
     def on_solve_maze(self):
         self.engine.init_solver()
+        self.stack_log.configure(state="normal")
+        self.stack_log.delete("1.0", "end")
+        self.stack_log.configure(state="disabled")
+        self.log_message("--- START SOLVER ---")
         self.animate_solving()
 
     def on_next_step(self):
+        msg = ""
         if self.engine.is_generating:
-            self.engine.step_generation()
+            cont, msg = self.engine.step_generation()
         elif self.engine.is_solving:
-            self.engine.step_solve()
+            cont, msg = self.engine.step_solve()
         
+        if msg:
+            self.log_message(msg)
         self.draw_maze()
         self.update_stats()
 
     def animate_generation(self):
         if self.engine.is_generating:
-            self.engine.step_generation()
+            cont, msg = self.engine.step_generation()
+            if msg:
+                self.log_message(msg)
             self.draw_maze()
             self.update_stats()
             
@@ -137,7 +164,9 @@ class MazeApp(ctk.CTk):
 
     def animate_solving(self):
         if self.engine.is_solving:
-            self.engine.step_solve()
+            cont, msg = self.engine.step_solve()
+            if msg:
+                self.log_message(msg)
             self.draw_maze()
             self.update_stats()
             

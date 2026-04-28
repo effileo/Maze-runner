@@ -57,9 +57,10 @@ class MazeEngine:
     def step_solve(self):
         """Performs one step of the backtracking solver."""
         if not self.is_solving:
-            return False
+            return False, ""
 
         r, c = self.solver_current
+        log_msg = ""
         
         if not self.solver_visited[r][c]:
             self.solver_visited[r][c] = True
@@ -69,7 +70,7 @@ class MazeEngine:
         if r == self.rows - 1 and c == self.cols - 1:
             self.is_solving = False
             self.path_length = len(self.solver_stack) + 1
-            return False
+            return False, "--- REACHED EXIT! ---"
 
         # Find valid neighbors (no wall and not visited)
         neighbors = []
@@ -90,27 +91,32 @@ class MazeEngine:
             # Move to the first available neighbor
             nr, nc = neighbors[0]
             self.solver_stack.append((r, c))
+            log_msg = f"PUSH ({r}, {c})"
             self.solver_current = (nr, nc)
             self.path_length = len(self.solver_stack) + 1
         else:
             # Dead end: Backtrack
             self.dead_ends.append((r, c))
+            log_msg = f"DEAD END ({r}, {c})"
             if self.solver_stack:
                 self.solver_current = self.solver_stack.pop()
+                r2, c2 = self.solver_current
+                log_msg += f" -> POP ({r2}, {c2})"
                 self.backtracks += 1
                 self.path_length = len(self.solver_stack) + 1
             else:
                 self.is_solving = False # No path found
-                return False
+                return False, "--- NO PATH FOUND ---"
 
-        return True
+        return True, log_msg
         
     def step_generation(self):
         """Performs one step of the DFS generation algorithm."""
         if not self.is_generating:
-            return False
+            return False, ""
 
         r, c = self.current_cell
+        log_msg = ""
         if not self.visited[r][c]:
             self.visited[r][c] = True
             self.cells_visited += 1
@@ -145,11 +151,14 @@ class MazeEngine:
                 self.east_wall[r][c+1] = 0
             
             self.stack.append((r, c))
+            log_msg = f"PUSH ({r}, {c})"
             self.current_cell = (nr, nc)
         elif self.stack:
             self.current_cell = self.stack.pop()
+            r, c = self.current_cell
+            log_msg = f"POP ({r}, {c})"
         else:
             self.is_generating = False
-            return False # Finished
+            return False, "--- FINISHED ---"
             
-        return True # More steps to go
+        return True, log_msg # More steps to go
