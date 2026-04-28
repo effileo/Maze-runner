@@ -97,7 +97,7 @@ class MazeApp(ctk.CTk):
         self.btn_generate = ctk.CTkButton(self.left_panel, text="Generate Maze", command=self.on_generate_maze)
         self.btn_generate.pack(fill="x", padx=20, pady=5)
 
-        self.btn_solve = ctk.CTkButton(self.left_panel, text="Solve Maze", fg_color="#2ecc71", hover_color="#27ae60")
+        self.btn_solve = ctk.CTkButton(self.left_panel, text="Solve Maze", fg_color="#2ecc71", hover_color="#27ae60", command=self.on_solve_maze)
         self.btn_solve.pack(fill="x", padx=20, pady=5)
 
     def on_generate_maze(self):
@@ -108,6 +108,10 @@ class MazeApp(ctk.CTk):
             self.animate_generation()
         except ValueError:
             print("Invalid input for rows/cols")
+
+    def on_solve_maze(self):
+        self.engine.init_solver()
+        self.animate_solving()
 
     def animate_generation(self):
         if self.engine.is_generating:
@@ -120,6 +124,18 @@ class MazeApp(ctk.CTk):
             self.after(delay, self.animate_generation)
         else:
             self.draw_maze() # Final redraw
+            self.update_stats()
+
+    def animate_solving(self):
+        if self.engine.is_solving:
+            self.engine.step_solve()
+            self.draw_maze()
+            self.update_stats()
+            
+            delay = int(self.slider_delay.get())
+            self.after(delay, self.animate_solving)
+        else:
+            self.draw_maze()
             self.update_stats()
 
     def update_stats(self):
@@ -173,6 +189,23 @@ class MazeApp(ctk.CTk):
             x2 = x1 + cell_size - 8
             y2 = y1 + cell_size - 8
             self.canvas.create_rectangle(x1, y1, x2, y2, fill="#e74c3c", outline="")
+
+        # Draw Solver Path (Red Dots)
+        if self.engine.is_solving or self.engine.solver_visited:
+            # Draw Path
+            for r, c in self.engine.solver_stack + [self.engine.solver_current]:
+                if not self.engine.is_solving and r == 0 and c == 0: continue # Skip if reset
+                cx = offset_x + c * cell_size + cell_size / 2
+                cy = offset_y + r * cell_size + cell_size / 2
+                radius = cell_size / 4
+                self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#e74c3c", outline="")
+            
+            # Draw Dead Ends (Blue Dots)
+            for r, c in self.engine.dead_ends:
+                cx = offset_x + c * cell_size + cell_size / 2
+                cy = offset_y + r * cell_size + cell_size / 2
+                radius = cell_size / 6
+                self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#3498db", outline="")
 
     def setup_bottom_panel(self):
         # Use a grid inside bottom panel to distribute labels

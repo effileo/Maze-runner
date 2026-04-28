@@ -12,6 +12,13 @@ class MazeEngine:
         self.visited = []
         self.current_cell = (0, 0)
         self.is_generating = False
+        self.is_solving = False
+
+        # Solver State
+        self.solver_stack = []
+        self.solver_visited = []
+        self.dead_ends = []
+        self.solver_current = (0, 0)
 
         # Stats
         self.path_length = 0
@@ -31,7 +38,72 @@ class MazeEngine:
         self.stack = []
         self.current_cell = (0, 0)
         self.is_generating = True
+        self.is_solving = False
         self.cells_visited = 0
+        self.path_length = 0
+        self.backtracks = 0
+        self.dead_ends = []
+
+    def init_solver(self):
+        self.solver_visited = [[False for _ in range(self.cols)] for _ in range(self.rows)]
+        self.solver_stack = []
+        self.solver_current = (0, 0)
+        self.dead_ends = []
+        self.is_solving = True
+        self.path_length = 0
+        self.backtracks = 0
+        self.cells_visited = 0 # Reset visited for solver count if needed, or keep it separate
+
+    def step_solve(self):
+        """Performs one step of the backtracking solver."""
+        if not self.is_solving:
+            return False
+
+        r, c = self.solver_current
+        
+        if not self.solver_visited[r][c]:
+            self.solver_visited[r][c] = True
+            self.cells_visited += 1
+
+        # Check if reached the end (bottom-right)
+        if r == self.rows - 1 and c == self.cols - 1:
+            self.is_solving = False
+            self.path_length = len(self.solver_stack) + 1
+            return False
+
+        # Find valid neighbors (no wall and not visited)
+        neighbors = []
+        # Up
+        if r > 0 and self.north_wall[r][c] == 0 and not self.solver_visited[r-1][c]:
+            neighbors.append((r-1, c))
+        # Down
+        if r < self.rows - 1 and self.north_wall[r+1][c] == 0 and not self.solver_visited[r+1][c]:
+            neighbors.append((r+1, c))
+        # Left
+        if c > 0 and self.east_wall[r][c] == 0 and not self.solver_visited[r][c-1]:
+            neighbors.append((r, c-1))
+        # Right
+        if c < self.cols - 1 and self.east_wall[r][c+1] == 0 and not self.solver_visited[r][c+1]:
+            neighbors.append((r, c+1))
+
+        if neighbors:
+            # Move to the first available neighbor
+            nr, nc = neighbors[0]
+            self.solver_stack.append((r, c))
+            self.solver_current = (nr, nc)
+            self.path_length = len(self.solver_stack) + 1
+        else:
+            # Dead end: Backtrack
+            self.dead_ends.append((r, c))
+            if self.solver_stack:
+                self.solver_current = self.solver_stack.pop()
+                self.backtracks += 1
+                self.path_length = len(self.solver_stack) + 1
+            else:
+                self.is_solving = False # No path found
+                return False
+
+        return True
         
     def step_generation(self):
         """Performs one step of the DFS generation algorithm."""
