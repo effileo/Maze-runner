@@ -86,12 +86,12 @@ class MazeApp(ctk.CTk):
         # Animation Delay Slider
         self.label_delay = ctk.CTkLabel(self.left_panel, text="Animation Delay (ms):")
         self.label_delay.pack(anchor="w", padx=20)
-        self.slider_delay = ctk.CTkSlider(self.left_panel, from_=0, to=100, number_of_steps=100)
+        self.slider_delay = ctk.CTkSlider(self.left_panel, from_=0, to=500, number_of_steps=100)
         self.slider_delay.pack(fill="x", padx=20, pady=(0, 20))
-        self.slider_delay.set(10)
+        self.slider_delay.set(50)
 
         # Buttons
-        self.btn_next = ctk.CTkButton(self.left_panel, text="Next Step", fg_color="transparent", border_width=2)
+        self.btn_next = ctk.CTkButton(self.left_panel, text="Next Step", fg_color="transparent", border_width=2, command=self.on_next_step)
         self.btn_next.pack(fill="x", padx=20, pady=5)
 
         self.btn_generate = ctk.CTkButton(self.left_panel, text="Generate Maze", command=self.on_generate_maze)
@@ -112,6 +112,15 @@ class MazeApp(ctk.CTk):
     def on_solve_maze(self):
         self.engine.init_solver()
         self.animate_solving()
+
+    def on_next_step(self):
+        if self.engine.is_generating:
+            self.engine.step_generation()
+        elif self.engine.is_solving:
+            self.engine.step_solve()
+        
+        self.draw_maze()
+        self.update_stats()
 
     def animate_generation(self):
         if self.engine.is_generating:
@@ -191,21 +200,26 @@ class MazeApp(ctk.CTk):
             self.canvas.create_rectangle(x1, y1, x2, y2, fill="#e74c3c", outline="")
 
         # Draw Solver Path (Red Dots)
-        if self.engine.is_solving or self.engine.solver_visited:
-            # Draw Path
-            for r, c in self.engine.solver_stack + [self.engine.solver_current]:
-                if not self.engine.is_solving and r == 0 and c == 0: continue # Skip if reset
-                cx = offset_x + c * cell_size + cell_size / 2
-                cy = offset_y + r * cell_size + cell_size / 2
-                radius = cell_size / 4
-                self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#e74c3c", outline="")
-            
-            # Draw Dead Ends (Blue Dots)
-            for r, c in self.engine.dead_ends:
-                cx = offset_x + c * cell_size + cell_size / 2
-                cy = offset_y + r * cell_size + cell_size / 2
-                radius = cell_size / 6
-                self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#3498db", outline="")
+        if (self.engine.is_solving or self.engine.solver_visited):
+            # Challenge Mode: Hide path while solving
+            is_challenge = self.check_challenge.get()
+            if is_challenge and self.engine.is_solving:
+                pass # Don't draw path yet
+            else:
+                # Draw Path
+                for r, c in self.engine.solver_stack + [self.engine.solver_current]:
+                    if not self.engine.is_solving and r == 0 and c == 0: continue
+                    cx = offset_x + c * cell_size + cell_size / 2
+                    cy = offset_y + r * cell_size + cell_size / 2
+                    radius = cell_size / 4
+                    self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#e74c3c", outline="")
+                
+                # Draw Dead Ends (Blue Dots)
+                for r, c in self.engine.dead_ends:
+                    cx = offset_x + c * cell_size + cell_size / 2
+                    cy = offset_y + r * cell_size + cell_size / 2
+                    radius = cell_size / 6
+                    self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#3498db", outline="")
 
     def setup_bottom_panel(self):
         # Use a grid inside bottom panel to distribute labels
