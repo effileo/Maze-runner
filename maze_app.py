@@ -10,31 +10,48 @@ class MazeApp(ctk.CTk):
 
         # Basic Configuration
         ctk.set_appearance_mode("Dark")
-        ctk.set_default_color_theme("blue")
         
-        self.title("HealthNet - Maze Generator & Solver")
-        self.geometry("1100x700")
+        # --- PREMIUM THEME PALETTE ---
+        self.bg_color = "#050505"      # OLED Black
+        self.panel_color = "#121212"   # Deep Slate
+        self.accent_color = "#00f2ff"  # Holographic Cyan
+        self.text_main = "#ffffff"
+        self.text_dim = "#888888"
+        
+        self.title("MazeMaster Pro")
+        self.geometry("1200x800")
+        self.configure(fg_color=self.bg_color)
 
-        # Configure grid layout (1x2)
+        # Configure main grid
         self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
-        # --- Left Panel: Configuration ---
-        self.left_panel = ctk.CTkFrame(self, width=250, corner_radius=0)
-        self.left_panel.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=10, pady=10)
-        self.left_panel.grid_propagate(False)
+        # --- Top Header Bar ---
+        self.header = ctk.CTkFrame(self, height=60, corner_radius=0, fg_color=self.panel_color, border_width=1, border_color="#222222")
+        self.header.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.header.grid_propagate(False)
+        
+        self.header_label = ctk.CTkLabel(self.header, text="MAZEMASTER PRO", font=ctk.CTkFont(family="Orbitron", size=22, weight="bold"), text_color=self.accent_color)
+        self.header_label.pack(side="left", padx=30)
+        
+        self.version_label = ctk.CTkLabel(self.header, text="v2.0 | Advanced CG Engine", font=ctk.CTkFont(size=12), text_color="#444444")
+        self.version_label.pack(side="right", padx=30)
+
+        # --- Left Panel: Configuration (Now Scrollable) ---
+        self.left_panel = ctk.CTkScrollableFrame(self, width=280, corner_radius=20, fg_color=self.panel_color, border_width=1, border_color="#222222")
+        self.left_panel.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
         self.setup_left_panel()
 
         # --- Right Panel: Canvas ---
-        self.right_panel = ctk.CTkFrame(self, corner_radius=10)
-        self.right_panel.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=(10, 5))
+        self.right_panel = ctk.CTkFrame(self, corner_radius=25, fg_color="#080808", border_width=1, border_color="#222222")
+        self.right_panel.grid(row=1, column=1, sticky="nsew", padx=(0, 20), pady=(20, 10))
         self.right_panel.grid_rowconfigure(0, weight=1)
         self.right_panel.grid_columnconfigure(0, weight=1)
 
         self.canvas = tk.Canvas(
             self.right_panel, 
-            bg="#1a1a1a", 
+            bg="#050505", 
             highlightthickness=0,
             bd=0
         )
@@ -42,8 +59,8 @@ class MazeApp(ctk.CTk):
         self.canvas.bind("<Configure>", lambda e: self.draw_maze())
 
         # --- Bottom Panel: Stats ---
-        self.bottom_panel = ctk.CTkFrame(self, height=60, corner_radius=10)
-        self.bottom_panel.grid(row=1, column=1, sticky="ew", padx=(0, 10), pady=(5, 10))
+        self.bottom_panel = ctk.CTkFrame(self, height=80, corner_radius=20, fg_color=self.panel_color, border_width=1, border_color="#222222")
+        self.bottom_panel.grid(row=2, column=1, sticky="ew", padx=(0, 20), pady=(10, 20))
         self.bottom_panel.grid_propagate(False)
         
         self.setup_bottom_panel()
@@ -91,21 +108,22 @@ class MazeApp(ctk.CTk):
         self.slider_delay.set(50)
 
         # Buttons
-        self.btn_next = ctk.CTkButton(self.left_panel, text="Next Step", fg_color="transparent", border_width=2, command=self.on_next_step)
-        self.btn_next.pack(fill="x", padx=20, pady=5)
+        self.btn_next = ctk.CTkButton(self.left_panel, text="Step Manual", fg_color="transparent", border_width=1, border_color=self.accent_color, hover_color="#1a1a1a", text_color=self.accent_color, height=35, font=ctk.CTkFont(weight="bold"), command=self.on_next_step)
+        self.btn_next.pack(fill="x", padx=30, pady=5)
 
-        self.btn_generate = ctk.CTkButton(self.left_panel, text="Generate Maze", command=self.on_generate_maze)
-        self.btn_generate.pack(fill="x", padx=20, pady=5)
+        self.btn_generate = ctk.CTkButton(self.left_panel, text="Initialize Grid", fg_color="#1a1a1a", border_width=1, border_color="#333333", hover_color="#252525", height=40, font=ctk.CTkFont(weight="bold"))
+        self.btn_generate.configure(command=self.on_generate_maze, text="GENERATE MAZE")
+        self.btn_generate.pack(fill="x", padx=30, pady=5)
 
-        self.btn_solve = ctk.CTkButton(self.left_panel, text="Solve Maze", fg_color="#2ecc71", hover_color="#27ae60", command=self.on_solve_maze)
-        self.btn_solve.pack(fill="x", padx=20, pady=5)
+        self.btn_solve = ctk.CTkButton(self.left_panel, text="SOLVE PATH", fg_color=self.accent_color, text_color="#000000", hover_color="#00c9d4", height=45, font=ctk.CTkFont(weight="bold"), command=self.on_solve_maze)
+        self.btn_solve.pack(fill="x", padx=30, pady=15)
 
         # Stack Log Report
-        self.label_log = ctk.CTkLabel(self.left_panel, text="Stack Log:", font=ctk.CTkFont(size=13, weight="bold"))
-        self.label_log.pack(anchor="w", padx=20, pady=(20, 0))
+        self.label_log = ctk.CTkLabel(self.left_panel, text="SYSTEM DIAGNOSTICS", font=ctk.CTkFont(size=10, weight="bold"), text_color=self.accent_color)
+        self.label_log.pack(anchor="w", padx=35, pady=(20, 0))
         
-        self.stack_log = ctk.CTkTextbox(self.left_panel, height=150, font=ctk.CTkFont(family="Consolas", size=11))
-        self.stack_log.pack(fill="x", padx=20, pady=(5, 10))
+        self.stack_log = ctk.CTkTextbox(self.left_panel, height=250, font=ctk.CTkFont(family="Consolas", size=10), fg_color="#050505", text_color=self.accent_color, border_width=1, border_color=self.accent_color)
+        self.stack_log.pack(fill="x", padx=25, pady=(5, 30))
         self.stack_log.configure(state="disabled")
 
     def log_message(self, message):
@@ -212,7 +230,9 @@ class MazeApp(ctk.CTk):
                     y1 = offset_y + (self.engine.rows - r) * cell_size
                     x2 = x1 + cell_size
                     y2 = y1
-                    self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
+                    # Premium Holographic Wall Logic
+                    self.canvas.create_line(x1, y1, x2, y2, fill="#003344", width=3)
+                    self.canvas.create_line(x1, y1, x2, y2, fill=self.accent_color, width=1)
 
         # Draw East Walls (vertical)
         # Note: PDF logic - east_wall[r][0] is the left boundary
@@ -223,7 +243,9 @@ class MazeApp(ctk.CTk):
                     y1 = offset_y + (self.engine.rows - (r + 1)) * cell_size
                     x2 = x1
                     y2 = y1 + cell_size
-                    self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
+                    # Holographic Vertical Wall
+                    self.canvas.create_line(x1, y1, x2, y2, fill="#003344", width=3)
+                    self.canvas.create_line(x1, y1, x2, y2, fill=self.accent_color, width=1)
 
         # Draw Current Cell (The "Mouse")
         if self.engine.is_generating:
@@ -275,15 +297,34 @@ class MazeApp(ctk.CTk):
             self.canvas.create_text(ex, ey, text="E", fill="#f1c40f", font=ctk.CTkFont(size=int(cell_size*0.6), weight="bold"))
 
     def setup_bottom_panel(self):
-        # Use a grid inside bottom panel to distribute labels
+        # Configure columns for 3 metric cards
         self.bottom_panel.grid_columnconfigure((0, 1, 2), weight=1)
-        self.bottom_panel.grid_rowconfigure(0, weight=1)
+        
+        # --- Card 1: Path Length ---
+        self.f_path = ctk.CTkFrame(self.bottom_panel, fg_color="transparent")
+        self.f_path.grid(row=0, column=0, pady=10)
+        self.lbl_path_val = ctk.CTkLabel(self.f_path, text="0", font=ctk.CTkFont(size=24, weight="bold"), text_color=self.accent_color)
+        self.lbl_path_val.pack()
+        self.lbl_path_title = ctk.CTkLabel(self.f_path, text="PATH MAGNITUDE", font=ctk.CTkFont(size=10, weight="bold"), text_color=self.text_dim)
+        self.lbl_path_title.pack()
 
-        self.stat_path = ctk.CTkLabel(self.bottom_panel, text="Path Length: 0", font=ctk.CTkFont(size=13))
-        self.stat_path.grid(row=0, column=0)
+        # --- Card 2: Cells Visited ---
+        self.f_visit = ctk.CTkFrame(self.bottom_panel, fg_color="transparent")
+        self.f_visit.grid(row=0, column=1, pady=10)
+        self.lbl_visit_val = ctk.CTkLabel(self.f_visit, text="0", font=ctk.CTkFont(size=24, weight="bold"), text_color=self.accent_color)
+        self.lbl_visit_val.pack()
+        self.lbl_visit_title = ctk.CTkLabel(self.f_visit, text="CELLS EXPLORED", font=ctk.CTkFont(size=10, weight="bold"), text_color=self.text_dim)
+        self.lbl_visit_title.pack()
 
-        self.stat_visited = ctk.CTkLabel(self.bottom_panel, text="Cells Visited: 0", font=ctk.CTkFont(size=13))
-        self.stat_visited.grid(row=0, column=1)
+        # --- Card 3: Backtracks ---
+        self.f_back = ctk.CTkFrame(self.bottom_panel, fg_color="transparent")
+        self.f_back.grid(row=0, column=2, pady=10)
+        self.lbl_back_val = ctk.CTkLabel(self.f_back, text="0", font=ctk.CTkFont(size=28, weight="bold"), text_color="#ff4757") # Bright Coral
+        self.lbl_back_val.pack()
+        self.lbl_back_title = ctk.CTkLabel(self.f_back, text="BACKTRACK EVENTS", font=ctk.CTkFont(size=9, weight="bold"), text_color="#666666")
+        self.lbl_back_title.pack()
 
-        self.stat_backtracks = ctk.CTkLabel(self.bottom_panel, text="Backtracks/Turns: 0", font=ctk.CTkFont(size=13))
-        self.stat_backtracks.grid(row=0, column=2)
+    def update_stats(self):
+        self.lbl_path_val.configure(text=str(self.engine.path_length))
+        self.lbl_visit_val.configure(text=str(self.engine.cells_visited))
+        self.lbl_back_val.configure(text=str(self.engine.backtracks))
