@@ -105,9 +105,27 @@ class MazeApp(ctk.CTk):
             rows = int(self.entry_rows.get())
             cols = int(self.entry_cols.get())
             self.engine.reset(rows, cols)
-            self.draw_maze()
+            self.animate_generation()
         except ValueError:
             print("Invalid input for rows/cols")
+
+    def animate_generation(self):
+        if self.engine.is_generating:
+            self.engine.step_generation()
+            self.draw_maze()
+            self.update_stats()
+            
+            # Delay in ms from slider
+            delay = int(self.slider_delay.get())
+            self.after(delay, self.animate_generation)
+        else:
+            self.draw_maze() # Final redraw
+            self.update_stats()
+
+    def update_stats(self):
+        self.stat_path.configure(text=f"Path Length: {self.engine.path_length}")
+        self.stat_visited.configure(text=f"Cells Visited: {self.engine.cells_visited}")
+        self.stat_backtracks.configure(text=f"Backtracks/Turns: {self.engine.backtracks}")
 
     def draw_maze(self):
         self.canvas.delete("all")
@@ -146,6 +164,15 @@ class MazeApp(ctk.CTk):
                     x2 = x1
                     y2 = y1 + cell_size
                     self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
+
+        # Draw Current Cell (The "Mouse")
+        if self.engine.is_generating:
+            r, c = self.engine.current_cell
+            x1 = offset_x + c * cell_size + 4
+            y1 = offset_y + r * cell_size + 4
+            x2 = x1 + cell_size - 8
+            y2 = y1 + cell_size - 8
+            self.canvas.create_rectangle(x1, y1, x2, y2, fill="#e74c3c", outline="")
 
     def setup_bottom_panel(self):
         # Use a grid inside bottom panel to distribute labels
