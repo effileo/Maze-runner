@@ -118,6 +118,8 @@ class MazeApp(ctk.CTk):
         try:
             rows = int(self.entry_rows.get())
             cols = int(self.entry_cols.get())
+            is_challenge = self.check_challenge.get()
+            self.engine.challenge_mode = is_challenge
             self.engine.reset(rows, cols)
             self.stack_log.configure(state="normal")
             self.stack_log.delete("1.0", "end")
@@ -128,7 +130,8 @@ class MazeApp(ctk.CTk):
             print("Invalid input for rows/cols")
 
     def on_solve_maze(self):
-        self.engine.init_solver()
+        is_challenge = self.check_challenge.get()
+        self.engine.init_solver(challenge_mode=is_challenge)
         self.stack_log.configure(state="normal")
         self.stack_log.delete("1.0", "end")
         self.stack_log.configure(state="disabled")
@@ -249,6 +252,24 @@ class MazeApp(ctk.CTk):
                     cy = offset_y + r * cell_size + cell_size / 2
                     radius = cell_size / 6
                     self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#3498db", outline="")
+
+        # Draw Start and End Markers (Green/Yellow)
+        if hasattr(self.engine, 'target_cell'):
+            # Start
+            if self.engine.is_solving or self.engine.solver_visited:
+                sr, sc = self.engine.solver_current if len(self.engine.solver_stack) == 0 else self.engine.solver_stack[0]
+            else:
+                sr, sc = (0, 0)
+            
+            sx = offset_x + sc * cell_size + cell_size / 2
+            sy = offset_y + sr * cell_size + cell_size / 2
+            self.canvas.create_text(sx, sy, text="S", fill="#2ecc71", font=ctk.CTkFont(size=int(cell_size*0.6), weight="bold"))
+            
+            # End
+            er, ec = self.engine.target_cell
+            ex = offset_x + ec * cell_size + cell_size / 2
+            ey = offset_y + er * cell_size + cell_size / 2
+            self.canvas.create_text(ex, ey, text="E", fill="#f1c40f", font=ctk.CTkFont(size=int(cell_size*0.6), weight="bold"))
 
     def setup_bottom_panel(self):
         # Use a grid inside bottom panel to distribute labels

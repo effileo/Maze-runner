@@ -13,6 +13,7 @@ class MazeEngine:
         self.current_cell = (0, 0)
         self.is_generating = False
         self.is_solving = False
+        self.challenge_mode = False
 
         # Solver State
         self.solver_stack = []
@@ -44,15 +45,26 @@ class MazeEngine:
         self.backtracks = 0
         self.dead_ends = []
 
-    def init_solver(self):
+    def init_solver(self, challenge_mode=False):
+        self.challenge_mode = challenge_mode
         self.solver_visited = [[False for _ in range(self.cols)] for _ in range(self.rows)]
         self.solver_stack = []
-        self.solver_current = (0, 0)
+        
+        if self.challenge_mode:
+            # Bonus: Interior start and end
+            self.solver_current = (random.randint(0, self.rows-1), random.randint(0, self.cols-1))
+            self.target_cell = (random.randint(0, self.rows-1), random.randint(0, self.cols-1))
+            while self.target_cell == self.solver_current:
+                self.target_cell = (random.randint(0, self.rows-1), random.randint(0, self.cols-1))
+        else:
+            self.solver_current = (0, 0)
+            self.target_cell = (self.rows - 1, self.cols - 1)
+
         self.dead_ends = []
         self.is_solving = True
         self.path_length = 0
         self.backtracks = 0
-        self.cells_visited = 0 # Reset visited for solver count if needed, or keep it separate
+        self.cells_visited = 0 
 
     def step_solve(self):
         """Performs one step of the backtracking solver."""
@@ -66,8 +78,8 @@ class MazeEngine:
             self.solver_visited[r][c] = True
             self.cells_visited += 1
 
-        # Check if reached the end (bottom-right)
-        if r == self.rows - 1 and c == self.cols - 1:
+        # Check if reached the end
+        if r == self.target_cell[0] and c == self.target_cell[1]:
             self.is_solving = False
             self.path_length = len(self.solver_stack) + 1
             return False, "--- REACHED EXIT! ---"
@@ -135,6 +147,21 @@ class MazeEngine:
         # Right
         if c < self.cols - 1 and not self.visited[r][c+1]:
             neighbors.append(('E', r, c+1))
+
+        # Bonus: 1 in 20 chance to eat an extra wall to a VISITED neighbor (creating a cycle)
+        if self.challenge_mode and random.random() < 0.05:
+            all_n = []
+            if r > 0: all_n.append(('N', r-1, c))
+            if r < self.rows - 1: all_n.append(('S', r+1, c))
+            if c > 0: all_n.append(('W', r, c-1))
+            if c < self.cols - 1: all_n.append(('E', r, c+1))
+            v_n = [n for n in all_n if self.visited[n[1]][n[2]]]
+            if v_n:
+                d, nr_b, nc_b = random.choice(v_n)
+                if d == 'N': self.north_wall[r][c] = 0
+                elif d == 'S': self.north_wall[r+1][c] = 0
+                elif d == 'W': self.east_wall[r][c] = 0
+                elif d == 'E': self.east_wall[r][c+1] = 0
 
         if neighbors:
             # Pick a random neighbor
