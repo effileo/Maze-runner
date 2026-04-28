@@ -203,21 +203,24 @@ class MazeApp(ctk.CTk):
         offset_y = (canv_h - (cell_size * self.engine.rows)) / 2
 
         # Draw North Walls (horizontal)
+        # Note: PDF logic - north_wall[0] is the bottom boundary
         for r in range(self.engine.rows + 1):
             for c in range(self.engine.cols):
                 if self.engine.north_wall[r][c] == 1:
                     x1 = offset_x + c * cell_size
-                    y1 = offset_y + r * cell_size
+                    # Inverted Y for PDF logic: r=0 is bottom, r=rows is top
+                    y1 = offset_y + (self.engine.rows - r) * cell_size
                     x2 = x1 + cell_size
                     y2 = y1
                     self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
 
         # Draw East Walls (vertical)
+        # Note: PDF logic - east_wall[r][0] is the left boundary
         for r in range(self.engine.rows):
             for c in range(self.engine.cols + 1):
                 if self.engine.east_wall[r][c] == 1:
                     x1 = offset_x + c * cell_size
-                    y1 = offset_y + r * cell_size
+                    y1 = offset_y + (self.engine.rows - (r + 1)) * cell_size
                     x2 = x1
                     y2 = y1 + cell_size
                     self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
@@ -226,7 +229,7 @@ class MazeApp(ctk.CTk):
         if self.engine.is_generating:
             r, c = self.engine.current_cell
             x1 = offset_x + c * cell_size + 4
-            y1 = offset_y + r * cell_size + 4
+            y1 = offset_y + (self.engine.rows - (r + 1)) * cell_size + 4
             x2 = x1 + cell_size - 8
             y2 = y1 + cell_size - 8
             self.canvas.create_rectangle(x1, y1, x2, y2, fill="#e74c3c", outline="")
@@ -242,14 +245,14 @@ class MazeApp(ctk.CTk):
                 for r, c in self.engine.solver_stack + [self.engine.solver_current]:
                     if not self.engine.is_solving and r == 0 and c == 0: continue
                     cx = offset_x + c * cell_size + cell_size / 2
-                    cy = offset_y + r * cell_size + cell_size / 2
+                    cy = offset_y + (self.engine.rows - r - 0.5) * cell_size
                     radius = cell_size / 4
                     self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#e74c3c", outline="")
                 
                 # Draw Dead Ends (Blue Dots)
                 for r, c in self.engine.dead_ends:
                     cx = offset_x + c * cell_size + cell_size / 2
-                    cy = offset_y + r * cell_size + cell_size / 2
+                    cy = offset_y + (self.engine.rows - r - 0.5) * cell_size
                     radius = cell_size / 6
                     self.canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill="#3498db", outline="")
 
@@ -262,13 +265,13 @@ class MazeApp(ctk.CTk):
                 sr, sc = (0, 0)
             
             sx = offset_x + sc * cell_size + cell_size / 2
-            sy = offset_y + sr * cell_size + cell_size / 2
+            sy = offset_y + (self.engine.rows - sr - 0.5) * cell_size
             self.canvas.create_text(sx, sy, text="S", fill="#2ecc71", font=ctk.CTkFont(size=int(cell_size*0.6), weight="bold"))
             
             # End
             er, ec = self.engine.target_cell
             ex = offset_x + ec * cell_size + cell_size / 2
-            ey = offset_y + er * cell_size + cell_size / 2
+            ey = offset_y + (self.engine.rows - er - 0.5) * cell_size
             self.canvas.create_text(ex, ey, text="E", fill="#f1c40f", font=ctk.CTkFont(size=int(cell_size*0.6), weight="bold"))
 
     def setup_bottom_panel(self):

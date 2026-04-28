@@ -4,7 +4,15 @@ class MazeEngine:
     def __init__(self):
         self.rows = 0
         self.cols = 0
-        self.north_wall = []
+        
+        # --- DATA STRUCTURE REQUIREMENTS (From Assignment PDF) ---
+        # north_wall[R][C]: If 1, the cell has a solid upper wall.
+        # The zeroth row is a phantom row of cells below the maze 
+        # whose north walls make up the bottom edge of the maze.
+        self.north_wall = [] 
+        
+        # east_wall[R][C]: Specifies where gaps appear in vertical walls.
+        # east_wall[i][0] specifies gaps in the left edge of the maze.
         self.east_wall = []
         
         # Generation State
