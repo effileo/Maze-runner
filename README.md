@@ -1,34 +1,51 @@
-# MazeMaster Pro - Advanced CG Engine
+# Maze Generator & Solver
 
-A high-performance maze generation and solving application built with Python and CustomTkinter. This project implements a sophisticated "mouse" logic for maze creation and a backtracking algorithm for pathfinding.
+A robust, interactive Python application built with **Pygame** to visualize maze generation and solving algorithms. This project implements a variety of search and traversal techniques on a custom 2D grid structure.
 
 ## 🚀 Features
-- **Dynamic Maze Generation**: Uses a stack-based Depth-First Search (DFS) algorithm.
-- **Backtracking Solver**: Visualizes the solution path with real-time dead-end tracking.
-- **Holographic UI**: Premium Cyberpunk-themed interface with high-contrast metric cards.
-- **System Diagnostics**: Real-time logging of stack operations (PUSH/POP).
-- **Challenge Mode (Bonus)**: 
-  - **Cycle Creation**: 5% chance to create loops by carving extra walls.
-  - **Random Interior Start/End**: Entry and exit points are randomized within the maze interior.
 
-## 🧠 How it Works
+- **Interactive UI**: Custom-built dark-themed UI with glassmorphism effects.
+- **Dynamic Grid**: Adjust rows and columns (5 to 50) in real-time via spin-boxes or direct text input.
+- **Responsive Design**: Resizable window with an adaptive layout.
+- **Generation Animations**: Watch the "mouse" carve paths through the grid.
+- **Solver Animations**: Visualize pathfinding with real-time stats (Path Length, Cells Visited, Backtracks).
 
-### Maze Generation (The "Mouse" Logic)
-The generator uses a **stack-based DFS** algorithm, often described as an "invisible mouse" eating through walls:
-1. The mouse starts at a random cell and checks for unvisited neighbors.
-2. It chooses a neighbor randomly, removes the dividing wall, and pushes the current location to a **stack**.
-3. If the mouse becomes trapped (no unvisited neighbors), it **pops** the stack to backtrack to the last available junction.
-4. The process continues until the stack is empty, ensuring a "proper" maze where every cell is connected.
+## 🐭 Generation Algorithms
 
-### Maze Solver
-The solver utilizes a **Backtracking** algorithm:
-- **Red Dots**: Represent the current path (cells on the stack).
-- **Blue Dots**: Mark dead ends that have been explored and discarded.
-- The solver systematically explores the "tree" structure of the maze until the target "E" marker is reached.
+- **DFS (Depth-First Search)**: Uses a stack to create long, tortuous paths for a challenging maze.
+- **BFS (Breadth-First Search)**: Uses a queue to generate highly branching mazes with shorter corridors.
+- **Challenge Mode**: Introduces cycles (loops) into the maze, transforming it from a "perfect" tree into a more complex network.
 
-## 🛠️ Requirements
-- Python 3.x
-- CustomTkinter (`pip install customtkinter`)
+## 🧀 Solver Algorithms
 
-## 📜 Submission Details
-This project fulfills all requirements for the **CG Assignment 1**, including the data structure implementation for `northWall` and `eastWall` and the bonus points for cycle creation and interior start/end positioning.
+- **Backtracking (Stack-based)**: A recursive-style search that visually marks dead ends in blue and the active path in red.
+- **BFS (Shortest Path)**: Guarantees finding the absolute shortest route through the maze using a breadth-first expansion.
+- **Shoulder-to-Wall (Left-Hand Rule)**: A navigation strategy that follows the wall on the left. Includes **Cycle Detection** to identify loops in Challenge Mode mazes.
+
+## 🛠️ Technical Details
+
+- **Language**: Python 3.15+
+- **Library**: Pygame CE (Community Edition)
+- **Data Structures**:
+  - `northWall[R][C]`: 2D array managing horizontal walls.
+  - `eastWall[R][C]`: 2D array managing vertical walls.
+  - Supports "phantom row 0" and custom left-edge entrance gaps as per project requirements.
+
+## 🏃 Getting Started
+
+1.  **Install Dependencies**:
+    ```bash
+    pip install pygame-ce
+    ```
+
+2.  **Run the Application**:
+    ```bash
+    py maze.py
+    ```
+
+## 🎮 Controls
+
+- **Rows/Cols**: Click the +/- buttons or click the number to type a value.
+- **Next Step**: Manually advance the algorithm when "Step-by-Step Mode" is enabled.
+- **Animation Delay**: Use the slider to speed up or slow down the visualization.
+- **Generate/Solve**: Click to start the selected algorithm.
