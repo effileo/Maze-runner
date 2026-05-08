@@ -553,17 +553,37 @@ class MazeApp:
     def solve_shoulder(self):
         R, C = self.rows, self.cols
         r, c = R, 1; d = 1; end = (1, C)
-        self.solve_path = [(r, c)]; steps = 0; max_s = R * C * 4
+        # Use a stack-like list to track the 'active' path for red dots
+        self.solve_path = [(r, c)]
+        self.dead_ends = set()
+        steps = 0; max_s = R * C * 4
         while (r, c) != end:
             steps += 1
             if steps > max_s: self.status = "Cycle Detected!"; self.failed = True; self.animating = False; yield; return
+            
+            # Left-Hand Rule direction logic
             d = (d - 1) % 4
             while self.has_wall(r, c, d): d = (d + 1) % 4
-            if d == 0: r += 1
-            elif d == 1: c += 1
-            elif d == 2: r -= 1
-            elif d == 3: c -= 1
-            self.solve_path.append((r, c)); self.path_length = len(self.solve_path); self.cells_visited += 1; yield
+            
+            # Calculate next move
+            nr, nc = r, c
+            if d == 0: nr += 1
+            elif d == 1: nc += 1
+            elif d == 2: nr -= 1
+            elif d == 3: nc -= 1
+            
+            # Backtracking Visualization: 
+            # If the next cell is already the previous cell in our path, we are backtracking
+            if len(self.solve_path) > 1 and (nr, nc) == self.solve_path[-2]:
+                self.dead_ends.add((r, c)) # Mark the dead end we are leaving
+                self.solve_path.pop()     # Remove it from the active red path
+            else:
+                self.solve_path.append((nr, nc))
+            
+            r, c = nr, nc
+            self.path_length = len(self.solve_path)
+            self.cells_visited += 1
+            yield
         self.status = "Solved!"; self.animating = False
 
     def has_wall(self, r, c, d):
